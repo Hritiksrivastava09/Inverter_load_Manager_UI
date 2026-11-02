@@ -645,3 +645,43 @@ button:disabled {
 .row.running {
     border-radius:  !important;
 } */
+
+/* Slim, rounded scrollbars that follow the light/dark theme */
+* {
+    scrollbar-width: thin;
+    /* Firefox and current Chrome/Edge */
+    scrollbar-color: var(--off) transparent;
+}
+
+/* Fallback for older Chrome, Edge and Safari */
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--off);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    /* leaves a small gap around the thumb */
+    opacity: .6;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--mute);
+    background-clip: padding-box;
+}
+.list,
+.log {
+    scrollbar-color: transparent transparent;
+}
+
+.list:hover,
+.log:hover {
+    scrollbar-color: var(--off) transparent;
+}
