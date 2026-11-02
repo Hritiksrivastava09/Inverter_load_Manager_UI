@@ -685,3 +685,138 @@ button:disabled {
 .log:hover {
     scrollbar-color: var(--off) transparent;
 }
+/* ---------- Transitions when an appliance changes state ---------- */
+/* Gradients can't animate, so the tints live on pseudo-elements that fade in and out. */
+.row {
+    position: relative;
+    border-width: 2px;
+    border-left-width: 4px;
+    background: var(--card);
+    transition: background-color .35s ease, border-color .35s ease;
+}
+
+.row.running,
+.row.off,
+.row.shed {
+    background-color: var(--card);
+    background-image: none;
+}
+
+.row.off {
+    background-color: var(--off-bg);
+}
+
+.row.running {
+    border-style: solid;
+    border-color: var(--line);
+    border-left-color: var(--run);
+}
+
+.row.off {
+    border-style: solid;
+    border-color: var(--line);
+    border-left-color: var(--off);
+}
+
+.row.shed {
+    border-style: dashed;
+    border-color: var(--shed);
+}
+
+.row>* {
+    position: relative;
+    z-index: 1;
+}
+
+.row::before,
+.row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .35s ease;
+}
+
+.row::before {
+    background: linear-gradient(90deg, var(--run-bg), transparent 45%);
+}
+
+.row::after {
+    background: repeating-linear-gradient(135deg, var(--shed-bg) 0 10px, transparent 10px 20px);
+}
+
+.row.running::before {
+    opacity: 1;
+}
+
+.row.shed::after {
+    opacity: 1;
+}
+
+.dot {
+    transition: background-color .35s ease, box-shadow .35s ease;
+}
+
+.badge {
+    transition: background-color .35s ease, color .35s ease;
+}
+
+/* The switch moves as soon as it is clicked and stays bright while the request runs */
+.toggle {
+    transition: background-color .25s ease;
+}
+
+.toggle .knob {
+    transition: transform .25s cubic-bezier(.3, .7, .4, 1.2);
+}
+
+.toggle:disabled {
+    opacity: 1;
+    cursor: progress;
+}
+
+.toggle.pending {
+    animation: pulse .9s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    50% {
+        box-shadow: 0 0 0 4px rgba(31, 122, 90, .22);
+    }
+}
+
+/* New rows and capacity segments ease in instead of popping */
+.list>li {
+    animation: rowIn .3s ease both;
+}
+
+@keyframes rowIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+.seg {
+    transform-origin: left;
+    animation: segIn .4s ease both;
+}
+
+@keyframes segIn {
+    from {
+        opacity: 0;
+        transform: scaleX(.6);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}

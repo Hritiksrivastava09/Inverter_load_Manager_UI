@@ -25,6 +25,7 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [notices, setNotices] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [pendingId, setPendingId] = useState(null); // appliance whose switch was just clicked
   const [tab, setTab] = useState("all");
   const nid = useRef(0);
 
@@ -46,8 +47,9 @@ export default function App() {
     return () => clearInterval(t);
   }, [refresh]);
 
-  async function act(path, options) {
+  async function act(path, options, id = null) {
     setBusy(true);
+    setPendingId(id);
     const r = await api(path, options);
     if (r.ok) {
       (r.data.changes || []).forEach((c) => notify(c.type === "shed" ? "shed" : "restore", c.message));
@@ -56,6 +58,7 @@ export default function App() {
       notify("error", r.message);
     }
     await refresh();
+    setPendingId(null);
     setBusy(false);
     return r;
   }
@@ -73,8 +76,8 @@ export default function App() {
 
   const shade = (p) => `hsl(165 ${55 - (p - 1) * 4}% ${22 + ((p - 1) / Math.max(1, maxPrio - 1)) * 28}%)`;
 
-  const toggle = (a) => act(`/appliances/${a.id}/${a.state === "running" || a.state === "shed" ? "off" : "on"}`, { method: "POST" });
-  const tryNow = (a) => act(`/appliances/${a.id}/on`, { method: "POST" });
+  const toggle = (a) => act(`/appliances/${a.id}/${a.state === "running" || a.state === "shed" ? "off" : "on"}`, { method: "POST" }, a.id);
+  const tryNow = (a) => act(`/appliances/${a.id}/on`, { method: "POST" }, a.id);
   const remove = (a) => { if (window.confirm(`Delete ${a.name}?`)) act(`/appliances/${a.id}`, { method: "DELETE" }); };
 
   return (
@@ -125,6 +128,10 @@ export default function App() {
             {shown.map((a) => {
               const need = Math.max(0, a.wattage - free_w);
               const label = a.state === "running" ? "Running" : a.state === "shed" ? "Paused, waiting" : "Off";
+              // While the request is in flight, show the switch where the user is sending it.
+              // If the server rejects the request, it slides back when the real state arrives.
+              const pending = pendingId === a.id;
+              const view = pending ? (a.state === "running" ? "off" : "running") : a.state;
               return (
                 <li key={a.id} className={`row ${a.state}`}>
                   <span className="dot" />
@@ -149,9 +156,9 @@ export default function App() {
                   ) : (
                     <button
                       role="switch"
-                      aria-checked={a.state === "running"}
+                      aria-checked={view === "running"}
                       aria-label={a.state === "running" ? `Turn ${a.name} off` : `Turn ${a.name} on`}
-                      className={`toggle ${a.state}`}
+                      className={`toggle ${view}${pending ? " pending" : ""}`}
                       disabled={busy}
                       onClick={() => toggle(a)}
                     ><span className="knob" /></button>
